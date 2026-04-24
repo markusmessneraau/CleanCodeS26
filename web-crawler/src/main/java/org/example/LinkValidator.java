@@ -1,12 +1,40 @@
 package org.example;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+
 public class LinkValidator {
     public static boolean isValid(String url, String allowedDomain) {
 
-        if(url == null || url.isEmpty()){
+        if (url == null || url.isEmpty()) {
             return false;
         }
-        return url.contains(allowedDomain);
 
+        try {
+            URI uri = new URI(url);
+            return hasWebProtocol(uri) && hasAllowedDomain(uri, allowedDomain);
+
+        } catch (URISyntaxException e) {
+
+            return false;
+        }
+
+    }
+
+    private static boolean hasAllowedDomain(URI uri, String allowedDomain) {
+        String domain = uri.getHost();
+        if (domain != null && domain.contains(allowedDomain)) {
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean hasWebProtocol(URI uri) {
+        String scheme = uri.getScheme();
+        if (scheme != null && (scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("http"))) {
+            return true;
+        }
+        return false;
     }
 }

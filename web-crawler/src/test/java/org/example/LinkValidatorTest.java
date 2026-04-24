@@ -35,4 +35,9 @@ public class LinkValidatorTest {
         assertFalse(result);
     }
 
+    @Test
+    void shouldReturnFalseIfProtocolIsInvalid(){
+        assertFalse(LinkValidator.isValid("mailto:info@aau.at", "aau.at"));
+    }
+
 }
