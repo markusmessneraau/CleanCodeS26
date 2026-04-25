@@ -7,15 +7,22 @@ import org.jsoup.select.Elements;
 
 
 import java.io.IOException;
+import java.util.HashSet;
 
 public class HtmlParser {
-    private static final int MAX_DEPTH = 3;
+
+    private int maxDepth;
+    HashSet<String> visitedURLs = new HashSet<>();
+    public HtmlParser(int maxDepth) {
+        this.maxDepth = maxDepth;
+    }
 
     public void crawl(String url, String domain, int depth) {
-
-        if (depth > MAX_DEPTH) {
+        if (depth > maxDepth || visitedURLs.contains(url)) {
             return;
         }
+
+        visitedURLs.add(url);
         addMetaDataToReport(url, depth);
 
         try {
