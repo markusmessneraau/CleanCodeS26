@@ -7,14 +7,18 @@ import org.jsoup.select.Elements;
 
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashSet;
 
 public class HtmlParser {
 
     private int maxDepth;
+    private PrintStream out;
     HashSet<String> visitedURLs = new HashSet<>();
-    public HtmlParser(int maxDepth) {
+
+    public HtmlParser(int maxDepth, PrintStream out) {
         this.maxDepth = maxDepth;
+        this.out = out;
     }
 
     public void crawl(String url, String domain, int depth) {
@@ -54,7 +58,7 @@ public class HtmlParser {
 
             String hashtags = getHashtagsForOutput(levelOfHeading);
 
-            System.out.println(hashtags + " " + dashes + heading.text());
+            out.println(hashtags + " " + dashes + heading.text());
         }
     }
 
@@ -98,20 +102,20 @@ public class HtmlParser {
 
     private void addLinkToReport(String url, int nextDepth) {
         String dashes = getDashesForOutput(nextDepth);
-        System.out.println("<br>" + dashes + " link to <a> " + url + "</a>");
+        out.println("<br>" + dashes + " link to <a> " + url + "</a>");
     }
 
     private void addBrokenLinkToReport(String url, int depth) {
         String dashes = getDashesForOutput(depth);
         String prefix = dashes.isEmpty() ? "" : dashes + " ";
-        System.out.println("<br>" + prefix + "broken link <a>" + url + "</a>");
+        out.println("<br>" + prefix + "broken link <a>" + url + "</a>");
     }
 
     private void addMetaDataToReport(String url, int depth){
         if (depth == 1) {
             System.out.println("input: <a>" + url + "</a>");
         }
-        System.out.println("<br>depth: " + depth);
+        out.println("<br>depth: " + depth);
     }
 
 

@@ -5,7 +5,6 @@ import java.io.PrintStream;
 
 public class CrawlDemo {
     public static void main(String[] args) {
-
         if (args.length < 3) {
             System.out.println("Gebrauch: java CrawlDemo <URL> <Tiefe> <Domain>");
             return;
@@ -15,21 +14,13 @@ public class CrawlDemo {
         int maxDepth = Integer.parseInt(args[1]);
         String domain = args[2];
 
+        try (PrintStream fileOut = new PrintStream(new FileOutputStream("report.md"))) {
 
-        HtmlParser parser = new HtmlParser(maxDepth);
+            HtmlParser parser = new HtmlParser(maxDepth, fileOut);
 
-        try {
-            // Leitet alle Ausgaben (System.out.println) in die Datei um
-            PrintStream fileOut = new PrintStream(new FileOutputStream("report.md"));
-            System.setOut(fileOut);
-
-            System.out.println("CRAWLER START");
-
+            fileOut.println("CRAWLER START");
             parser.crawl(startUrl, domain, 1);
-            System.out.println("CRAWLER END");
-
-            fileOut.close();
-
+            fileOut.println("CRAWLER END");
 
             System.err.println("Bericht wurde in report.md gespeichert.");
 
