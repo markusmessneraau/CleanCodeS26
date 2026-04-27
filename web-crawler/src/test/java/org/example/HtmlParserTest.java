@@ -3,7 +3,6 @@ package org.example;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -83,40 +82,54 @@ class HtmlParserTest {
 
     @Test
     void testCrawlSuccessWithMock() throws IOException {
-        String url = "http://mock-test.at";
 
+        String url = "http://mock-test.at";
         String html = "<html><body><h1>Titel</h1><a href='http://mock-test.at/page2'>Link</a></body></html>";
         Document realDoc = Jsoup.parse(html, url);
 
+
         try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
             Connection mockConnection = mock(Connection.class);
+
 
             mockedJsoup.when(() -> Jsoup.connect(anyString())).thenReturn(mockConnection);
             when(mockConnection.get()).thenReturn(realDoc);
 
             parser.crawl(url, "mock-test.at", 1);
-
-            String output = testOut.toString();
-
-            // Jetzt kannst du prüfen, ob er wirklich "drin" war:
-            assertTrue(output.contains("# Titel"), "Die Überschrift wurde nicht gedruckt!");
-            assertTrue(parser.visitedURLs.contains(url), "URL sollte im HashSet sein");
         }
+
+
+        String output = testOut.toString();
+
+        assertAll("Crawl Validierung",
+                () -> assertTrue(output.contains("# Titel"), "Die Überschrift wurde nicht korrekt formatiert gedruckt!"),
+                () -> assertTrue(parser.visitedURLs.contains(url), "Die Ausgangs-URL sollte im HashSet als besucht markiert sein.")
+        );
     }
 
     @Test
     void testCrawlThrowsException() throws IOException {
+
         String url = "http://kaputt.at";
+        String domain = "kaputt.at";
 
         try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
             Connection mockConnection = mock(Connection.class);
+
+
             mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(mockConnection);
 
 
-            when(mockConnection.get()).thenThrow(new IOException("Netzwerkfehler"));
+            when(mockConnection.get()).thenThrow(new IOException("Simulierter Netzwerkfehler"));
 
-            parser.crawl(url, "kaputt.at", 1);
-            assertTrue(testOut.toString().contains("broken link"), "Fehler sollte im Report stehen");
+
+            parser.crawl(url, domain, 1);
         }
+
+
+        String output = testOut.toString();
+
+        assertTrue(output.contains("broken link"),
+                "Der Crawler sollte eine IOException abfangen und broken link im Report protokollieren.");
     }
 }
