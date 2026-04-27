@@ -42,4 +42,26 @@ public class LinkValidatorTest {
         assertFalse(LinkValidator.isValid("mailto:info@aau.at", List.of("aau.at")));
     }
 
+    @Test
+    void shouldReturnTrueForSubdomains() {
+        assertTrue(LinkValidator.isValid("https://campus.aau.at", List.of("aau.at")));
+    }
+
+    @Test
+    void shouldReturnFalseIfNoDomainMatches() {
+        assertFalse(LinkValidator.isValid("https://facebook.com", List.of("aau.at")));
+    }
+
+    @Test
+    void shouldHitNullHostCheck() {
+        assertFalse(LinkValidator.isValid("http://:80", List.of("aau.at")));
+    }
+
+    @Test
+    void shouldHitCatchBlock() {
+        assertFalse(LinkValidator.isValid("http://[", List.of("aau.at")));
+    }
+
+
+
 }
