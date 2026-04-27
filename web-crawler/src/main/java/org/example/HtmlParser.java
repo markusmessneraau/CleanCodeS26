@@ -12,8 +12,8 @@ import java.util.HashSet;
 
 public class HtmlParser {
 
-    private int maxDepth;
-    private PrintStream out;
+    private final int maxDepth;
+    private final PrintStream out;
     HashSet<String> visitedURLs = new HashSet<>();
 
     public HtmlParser(int maxDepth, PrintStream out) {
@@ -32,23 +32,21 @@ public class HtmlParser {
         try {
             Document website = Jsoup.connect(url).get();
 
-            printHeadingsofWebSite(website, depth);
+            addHeadingsToReport(website, depth);
 
             handleLinks(website, domain, depth);
-
 
         } catch (IOException e) {
             addBrokenLinkToReport(url, depth);
             System.err.println("Debug: " + url + " -> " + e.getMessage());
         }
-
     }
 
-    private void printHeadingsofWebSite(Document website, int depth) {
+    private void addHeadingsToReport(Document website, int depth) {
 
         Elements headings = website.select("h1, h2, h3, h4, h5, h6");
 
-        String dashes = getDashesForOutput(depth);
+        String dashes = getIndentation(depth);
 
         for (Element heading : headings) {
 
@@ -56,14 +54,14 @@ public class HtmlParser {
 
             int levelOfHeading = Character.getNumericValue(tagOfHeading.charAt(1));
 
-            String hashtags = getHashtagsForOutput(levelOfHeading);
+            String hashtags = getHashtagPrefix(levelOfHeading);
 
             out.println(hashtags + " " + dashes + heading.text());
         }
     }
 
 
-    String getDashesForOutput(int depth) {
+    String getIndentation(int depth) {
         String dashes = "";
 
         if (depth > 1) {
@@ -76,10 +74,10 @@ public class HtmlParser {
     }
 
 
-    String getHashtagsForOutput(int levelOfHeading) {
+    String getHashtagPrefix(int amount) {
         String hashtags = "";
 
-        for (int j = 0; j < levelOfHeading; j++) {
+        for (int j = 0; j < amount; j++) {
             hashtags += "#";
         }
         return hashtags;
@@ -95,28 +93,24 @@ public class HtmlParser {
                 addLinkToReport(extractedUrl, depth + 1);
                 crawl(extractedUrl, domain, depth + 1);
             }
-
         }
-
     }
 
     private void addLinkToReport(String url, int nextDepth) {
-        String dashes = getDashesForOutput(nextDepth);
+        String dashes = getIndentation(nextDepth);
         out.println("<br>" + dashes + " link to <a> " + url + "</a>");
     }
 
     private void addBrokenLinkToReport(String url, int depth) {
-        String dashes = getDashesForOutput(depth);
+        String dashes = getIndentation(depth);
         String prefix = dashes.isEmpty() ? "" : dashes + " ";
         out.println("<br>" + prefix + "broken link <a>" + url + "</a>");
     }
 
-    private void addMetaDataToReport(String url, int depth){
+    private void addMetaDataToReport(String url, int depth) {
         if (depth == 1) {
             out.println("input: <a>" + url + "</a>");
         }
         out.println("<br>depth: " + depth);
     }
-
-
 }
