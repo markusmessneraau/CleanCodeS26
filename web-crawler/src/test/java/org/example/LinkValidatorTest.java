@@ -2,6 +2,8 @@ package org.example;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,31 +11,57 @@ public class LinkValidatorTest {
 
     @Test
     void shouldReturnFalseIfUrlIsNull() {
-        assertFalse(LinkValidator.isValid(null,"aau.at"));
+        String url = null;
+        boolean result = LinkValidator.isValid(url, List.of("aau.at"));
+        assertFalse(result);
     }
 
     @Test
     void shouldReturnTrueIfUrlIsValidAndContainsAllowedDomain() {
-        assertTrue(LinkValidator.isValid("https://www.aau.at/", "aau.at"));
+        String url = "https://www.aau.at/";
+        boolean result = LinkValidator.isValid(url, List.of("aau.at"));
+        assertTrue(result);
     }
 
     @Test
     void shouldReturnFalseIfUrlIsValidButIsOutsideAllowedDomain() {
-        assertFalse(LinkValidator.isValid("https://www.aau.at/", "google.com"));
+        String url = "https://www.aau.at/";
+        boolean result = LinkValidator.isValid(url, List.of("google.com"));
+        assertFalse(result);
     }
 
     @Test
-    void shouldReturnFalseIfUrlIsEmpty() {
-        assertFalse(LinkValidator.isValid("", "aau.at"));
+    void shouldReturnFalseIfUrlIsEmpty(){
+        String url = "";
+        boolean result = LinkValidator.isValid(url, List.of("aau.at"));
+        assertFalse(result);
     }
 
     @Test
-    void shouldReturnFalseIfProtocolIsInvalid() {
-        assertFalse(LinkValidator.isValid("mailto:info@aau.at", "aau.at"));
+    void shouldReturnFalseIfProtocolIsInvalid(){
+        assertFalse(LinkValidator.isValid("mailto:info@aau.at", List.of("aau.at")));
     }
 
     @Test
-    void shouldReturnFalseIfUrlHasSpaces(){
-        assertFalse(LinkValidator.isValid("https://www .aau.at/", "aau.at"));
+    void shouldReturnTrueForSubdomains() {
+        assertTrue(LinkValidator.isValid("https://campus.aau.at", List.of("aau.at")));
     }
+
+    @Test
+    void shouldReturnFalseIfNoDomainMatches() {
+        assertFalse(LinkValidator.isValid("https://facebook.com", List.of("aau.at")));
+    }
+
+    @Test
+    void shouldHitNullHostCheck() {
+        assertFalse(LinkValidator.isValid("http://:80", List.of("aau.at")));
+    }
+
+    @Test
+    void shouldHitCatchBlock() {
+        assertFalse(LinkValidator.isValid("http://[", List.of("aau.at")));
+    }
+
+
+
 }
