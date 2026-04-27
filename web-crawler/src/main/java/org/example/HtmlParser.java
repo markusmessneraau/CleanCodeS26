@@ -101,7 +101,7 @@ public class HtmlParser {
         out.println("<br>" + dashes + " link to <a> " + url + "</a>");
     }
 
-    private void addBrokenLinkToReport(String url, int depth) {
+    void addBrokenLinkToReport(String url, int depth) {
         String dashes = getIndentation(depth);
         String prefix = dashes.isEmpty() ? "" : dashes + " ";
         out.println("<br>" + prefix + "broken link <a>" + url + "</a>");

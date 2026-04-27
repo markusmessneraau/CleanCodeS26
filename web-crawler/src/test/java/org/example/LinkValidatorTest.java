@@ -29,15 +29,20 @@ public class LinkValidatorTest {
     }
 
     @Test
-    void shouldReturnFalseIfUrlIsEmpty(){
+    void shouldReturnFalseIfUrlIsEmpty() {
         String url = "";
         boolean result = LinkValidator.isValid(url, "aau.at");
         assertFalse(result);
     }
 
     @Test
-    void shouldReturnFalseIfProtocolIsInvalid(){
+    void shouldReturnFalseIfProtocolIsInvalid() {
         assertFalse(LinkValidator.isValid("mailto:info@aau.at", "aau.at"));
+    }
+
+    @Test
+    void shouldReturnFalseIfUrlHasSpaces(){
+        assertFalse(LinkValidator.isValid("https://www .aau.at/", "aau.at" ));
     }
 
 }

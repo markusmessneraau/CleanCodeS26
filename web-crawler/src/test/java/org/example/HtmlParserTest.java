@@ -28,14 +28,14 @@ class HtmlParserTest {
 
     @Test
     void testHashtagsForHeadingLevels() {
-        assertEquals("#", parser.getHashtagsForOutput(1));
-        assertEquals("###", parser.getHashtagsForOutput(3));
+        assertEquals("#", parser.getHashtagPrefix(1));
+        assertEquals("###", parser.getHashtagPrefix(3));
     }
 
     @Test
     void testIndentationDashes() {
-        assertEquals("", parser.getDashesForOutput(1));
-        assertEquals("-->", parser.getDashesForOutput(2));
+        assertEquals("", parser.getIndentation(1));
+        assertEquals("-->", parser.getIndentation(2));
     }
 
     @Test
