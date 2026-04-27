@@ -24,8 +24,6 @@ class HtmlParserTest {
         parser = new HtmlParser(3, new PrintStream(testOut));
     }
 
-
-
     @Test
     void testHashtagsForHeadingLevels() {
         assertEquals("#", parser.getHashtagPrefix(1));
@@ -51,7 +49,6 @@ class HtmlParserTest {
 
     @Test
     void testCrawlStopsCorrecty() {
-
         parser.crawl("http://test.at", "test.at", 10); // 10 > 3 (maxDepth)
 
         parser.visitedURLs.add("http://schon-besucht.at");
@@ -63,7 +60,6 @@ class HtmlParserTest {
     @Test
     void testHandleLinksSkipsInvalid() throws IOException {
         String url = "http://meine-seite.at";
-
         String html = "<html><body><a href='http://google.com'>Externer Link</a></body></html>";
         Document doc = Jsoup.parse(html, url);
 
@@ -82,15 +78,12 @@ class HtmlParserTest {
 
     @Test
     void testCrawlSuccessWithMock() throws IOException {
-
         String url = "http://mock-test.at";
         String html = "<html><body><h1>Titel</h1><a href='http://mock-test.at/page2'>Link</a></body></html>";
         Document realDoc = Jsoup.parse(html, url);
 
-
         try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
             Connection mockConnection = mock(Connection.class);
-
 
             mockedJsoup.when(() -> Jsoup.connect(anyString())).thenReturn(mockConnection);
             when(mockConnection.get()).thenReturn(realDoc);
@@ -98,9 +91,7 @@ class HtmlParserTest {
             parser.crawl(url, "mock-test.at", 1);
         }
 
-
         String output = testOut.toString();
-
         assertAll("Crawl Validierung",
                 () -> assertTrue(output.contains("# Titel"), "Die Überschrift wurde nicht korrekt formatiert gedruckt!"),
                 () -> assertTrue(parser.visitedURLs.contains(url), "Die Ausgangs-URL sollte im HashSet als besucht markiert sein.")
@@ -109,27 +100,19 @@ class HtmlParserTest {
 
     @Test
     void testCrawlThrowsException() throws IOException {
-
         String url = "http://kaputt.at";
         String domain = "kaputt.at";
 
         try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
             Connection mockConnection = mock(Connection.class);
 
-
             mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(mockConnection);
-
-
             when(mockConnection.get()).thenThrow(new IOException("Simulierter Netzwerkfehler"));
-
 
             parser.crawl(url, domain, 1);
         }
 
-
         String output = testOut.toString();
-
-        assertTrue(output.contains("broken link"),
-                "Der Crawler sollte eine IOException abfangen und broken link im Report protokollieren.");
+        assertTrue(output.contains("broken link"), "Der Crawler sollte eine IOException abfangen und broken link im Report protokollieren.");
     }
 }

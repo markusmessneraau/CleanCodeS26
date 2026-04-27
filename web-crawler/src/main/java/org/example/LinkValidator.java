@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 
 public class LinkValidator {
     public static boolean isValid(String url, String allowedDomain) {
-
         if (url == null || url.isEmpty()) {
             return false;
         }
@@ -14,9 +13,7 @@ public class LinkValidator {
         try {
             URI uri = new URI(url);
             return hasWebProtocol(uri) && hasAllowedDomain(uri, allowedDomain);
-
         } catch (URISyntaxException e) {
-
             return false;
         }
 

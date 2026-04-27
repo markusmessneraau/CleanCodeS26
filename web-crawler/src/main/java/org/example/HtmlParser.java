@@ -31,11 +31,8 @@ public class HtmlParser {
 
         try {
             Document website = Jsoup.connect(url).get();
-
             addHeadingsToReport(website, depth);
-
             handleLinks(website, domain, depth);
-
         } catch (IOException e) {
             addBrokenLinkToReport(url, depth);
             System.err.println("Debug: " + url + " -> " + e.getMessage());
@@ -43,27 +40,20 @@ public class HtmlParser {
     }
 
     private void addHeadingsToReport(Document website, int depth) {
-
         Elements headings = website.select("h1, h2, h3, h4, h5, h6");
-
         String dashes = getIndentation(depth);
 
         for (Element heading : headings) {
-
             String tagOfHeading = heading.tagName();
-
             int levelOfHeading = Character.getNumericValue(tagOfHeading.charAt(1));
-
             String hashtags = getHashtagPrefix(levelOfHeading);
 
             out.println(hashtags + " " + dashes + heading.text());
         }
     }
 
-
     String getIndentation(int depth) {
         String dashes = "";
-
         if (depth > 1) {
             for (int i = 0; i < (depth - 1) * 2; i++) {
                 dashes += "-";
@@ -76,17 +66,14 @@ public class HtmlParser {
 
     String getHashtagPrefix(int amount) {
         String hashtags = "";
-
-        for (int j = 0; j < amount; j++) {
+        for (int i = 0; i < amount; i++) {
             hashtags += "#";
         }
         return hashtags;
     }
 
     private void handleLinks(Document website, String domain, int depth) {
-
         Elements links = website.select("a[href]");
-
         for (Element link : links) {
             String extractedUrl = link.absUrl("href");
             if (LinkValidator.isValid(extractedUrl, domain)) {
