@@ -63,7 +63,7 @@ public class HtmlParser {
     }
 
 
-    private String getDashesForOutput(int depth) {
+    String getDashesForOutput(int depth) {
         String dashes = "";
 
         if (depth > 1) {
@@ -76,7 +76,7 @@ public class HtmlParser {
     }
 
 
-    private String getHashtagsForOutput(int levelOfHeading) {
+    String getHashtagsForOutput(int levelOfHeading) {
         String hashtags = "";
 
         for (int j = 0; j < levelOfHeading; j++) {
@@ -113,7 +113,7 @@ public class HtmlParser {
 
     private void addMetaDataToReport(String url, int depth){
         if (depth == 1) {
-            System.out.println("input: <a>" + url + "</a>");
+            out.println("input: <a>" + url + "</a>");
         }
         out.println("<br>depth: " + depth);
     }
