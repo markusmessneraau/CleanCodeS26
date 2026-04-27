@@ -9,30 +9,22 @@ public class LinkValidatorTest {
 
     @Test
     void shouldReturnFalseIfUrlIsNull() {
-        String url = null;
-        boolean result = LinkValidator.isValid(url, "aau.at");
-        assertFalse(result);
+        assertFalse(LinkValidator.isValid(null,"aau.at"));
     }
 
     @Test
     void shouldReturnTrueIfUrlIsValidAndContainsAllowedDomain() {
-        String url = "https://www.aau.at/";
-        boolean result = LinkValidator.isValid(url, "aau.at");
-        assertTrue(result);
+        assertTrue(LinkValidator.isValid("https://www.aau.at/", "aau.at"));
     }
 
     @Test
     void shouldReturnFalseIfUrlIsValidButIsOutsideAllowedDomain() {
-        String url = "https://www.aau.at/";
-        boolean result = LinkValidator.isValid(url, "google.com");
-        assertFalse(result);
+        assertFalse(LinkValidator.isValid("https://www.aau.at/", "google.com"));
     }
 
     @Test
     void shouldReturnFalseIfUrlIsEmpty() {
-        String url = "";
-        boolean result = LinkValidator.isValid(url, "aau.at");
-        assertFalse(result);
+        assertFalse(LinkValidator.isValid("", "aau.at"));
     }
 
     @Test
@@ -42,7 +34,6 @@ public class LinkValidatorTest {
 
     @Test
     void shouldReturnFalseIfUrlHasSpaces(){
-        assertFalse(LinkValidator.isValid("https://www .aau.at/", "aau.at" ));
+        assertFalse(LinkValidator.isValid("https://www .aau.at/", "aau.at"));
     }
-
 }
