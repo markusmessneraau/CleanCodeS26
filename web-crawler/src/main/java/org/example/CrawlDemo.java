@@ -2,25 +2,28 @@ package org.example;
 
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class CrawlDemo {
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println("Gebrauch: java CrawlDemo <URL> <Tiefe> <Domain>");
+            System.out.println("Gebrauch: java CrawlDemo <URL> <Tiefe> <Domain> <Domain> ... <Domain>");
             return;
         }
 
         String startUrl = args[0];
         int maxDepth = Integer.parseInt(args[1]);
-        String domain = args[2];
+        List<String> domains = Arrays.asList(Arrays.copyOfRange(args, 2, args.length));
 
         try (PrintStream fileOut = new PrintStream(new FileOutputStream("report.md"))) {
 
             HtmlParser parser = new HtmlParser(maxDepth, fileOut);
-
+            System.out.println("CRAWLER START");
             fileOut.println("CRAWLER START");
-            parser.crawl(startUrl, domain, 1);
+            parser.crawl(startUrl, domains, 1);
             fileOut.println("CRAWLER END");
+            System.out.println("CRAWLER END");
 
             System.err.println("Bericht wurde in report.md gespeichert.");
 

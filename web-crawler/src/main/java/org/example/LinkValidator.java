@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 
 
 public class LinkValidator {
-    public static boolean isValid(String url, String allowedDomain) {
+    public static boolean isValid(String url, java.util.List<String> allowedDomain) {
 
         if (url == null || url.isEmpty()) {
             return false;
@@ -22,11 +22,19 @@ public class LinkValidator {
 
     }
 
-    private static boolean hasAllowedDomain(URI uri, String allowedDomain) {
+    private static boolean hasAllowedDomain(URI uri, java.util.List<String> allowedDomain) {
         String domain = uri.getHost();
-        if (domain != null && domain.contains(allowedDomain)) {
-            return true;
+        if (domain == null) {
+            return false;
         }
+
+        for(String allowed : allowedDomain){
+
+            if (domain.contains(allowed)) {
+                return true;
+            }
+        }
+
         return false;
     }
 

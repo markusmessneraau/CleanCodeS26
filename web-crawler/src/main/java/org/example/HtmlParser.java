@@ -9,6 +9,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashSet;
+import java.util.List;
 
 public class HtmlParser {
 
@@ -21,7 +22,7 @@ public class HtmlParser {
         this.out = out;
     }
 
-    public void crawl(String url, String domain, int depth) {
+    public void crawl(String url, List<String> domains, int depth) {
         if (depth > maxDepth || visitedURLs.contains(url)) {
             return;
         }
@@ -34,7 +35,7 @@ public class HtmlParser {
 
             printHeadingsofWebSite(website, depth);
 
-            handleLinks(website, domain, depth);
+            handleLinks(website, domains, depth);
 
 
         } catch (IOException e) {
@@ -85,15 +86,15 @@ public class HtmlParser {
         return hashtags;
     }
 
-    private void handleLinks(Document website, String domain, int depth) {
+    private void handleLinks(Document website, List<String> domains, int depth) {
 
         Elements links = website.select("a[href]");
 
         for (Element link : links) {
             String extractedUrl = link.absUrl("href");
-            if (LinkValidator.isValid(extractedUrl, domain)) {
+            if (LinkValidator.isValid(extractedUrl, domains)) {
                 addLinkToReport(extractedUrl, depth + 1);
-                crawl(extractedUrl, domain, depth + 1);
+                crawl(extractedUrl, domains, depth + 1);
             }
 
         }

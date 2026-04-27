@@ -10,6 +10,7 @@ import org.mockito.MockedStatic;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -52,10 +53,10 @@ class HtmlParserTest {
     @Test
     void testCrawlStopsCorrecty() {
 
-        parser.crawl("http://test.at", "test.at", 10); // 10 > 3 (maxDepth)
+        parser.crawl("http://test.at", List.of("test.at"), 10); // 10 > 3 (maxDepth)
 
         parser.visitedURLs.add("http://schon-besucht.at");
-        parser.crawl("http://schon-besucht.at", "test.at", 1);
+        parser.crawl("http://schon-besucht.at", List.of("test.at"), 1);
 
         assertTrue(testOut.toString().contains("depth: 10") || testOut.toString().isEmpty());
     }
@@ -72,7 +73,7 @@ class HtmlParserTest {
             mockedJsoup.when(() -> Jsoup.connect(anyString())).thenReturn(mockConnection);
             when(mockConnection.get()).thenReturn(doc);
 
-            parser.crawl(url, "meine-seite.at", 1);
+            parser.crawl(url, List.of("meine-seite.at"), 1);
 
             assertFalse(testOut.toString().contains("google.com"), "Ungültiger Link sollte ignoriert werden");
         }
@@ -95,7 +96,7 @@ class HtmlParserTest {
             mockedJsoup.when(() -> Jsoup.connect(anyString())).thenReturn(mockConnection);
             when(mockConnection.get()).thenReturn(realDoc);
 
-            parser.crawl(url, "mock-test.at", 1);
+            parser.crawl(url, List.of("mock-test.at"), 1);
         }
 
 
@@ -111,7 +112,7 @@ class HtmlParserTest {
     void testCrawlThrowsException() throws IOException {
 
         String url = "http://kaputt.at";
-        String domain = "kaputt.at";
+        List<String> domains = List.of("kaputt.at");
 
         try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
             Connection mockConnection = mock(Connection.class);
@@ -123,7 +124,7 @@ class HtmlParserTest {
             when(mockConnection.get()).thenThrow(new IOException("Simulierter Netzwerkfehler"));
 
 
-            parser.crawl(url, domain, 1);
+            parser.crawl(url, domains, 1);
         }
 
 
