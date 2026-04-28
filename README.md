@@ -1,3 +1,4 @@
+Hinweis zur KI-Nutzung: Gemini wurde genutzt, um verschiedene Implementierungsstrategien und Testfälle zu diskutieren. Die finale Implementierung wurde eigenständig von den Studierenden durchgeführt.
 # CleanCodeS26 - Web Crawler
 
 Ein Tool zum rekursiven Durchsuchen von Webseiten und zur Erstellung von strukturierten Markdown-Berichten.
