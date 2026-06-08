@@ -1,11 +1,7 @@
 package org.example;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,11 +14,14 @@ import static org.mockito.Mockito.*;
 class HtmlParserTest {
     private HtmlParser parser;
     private ByteArrayOutputStream testOut;
+    private HtmlDataExtractor mockExtractor; // Unser neuer Mock für das Interface
 
     @BeforeEach
     void setUp() {
         testOut = new ByteArrayOutputStream();
-        parser = new HtmlParser(3, new PrintStream(testOut));
+        mockExtractor = mock(HtmlDataExtractor.class); // Interface mocken statt Jsoup!
+        // Dem Parser übergeben wir jetzt den Mock
+        parser = new HtmlParser(3, new PrintStream(testOut), mockExtractor);
     }
 
     @Test
@@ -61,36 +60,25 @@ class HtmlParserTest {
     @Test
     void testHandleLinksSkipsInvalid() throws IOException {
         String url = "http://meine-seite.at";
-        String html = "<html><body><a href='http://google.com'>Externer Link</a></body></html>";
-        Document doc = Jsoup.parse(html, url);
 
-        try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
-            Connection mockConnection = mock(Connection.class);
-            mockedJsoup.when(() -> Jsoup.connect(anyString())).thenReturn(mockConnection);
-            when(mockConnection.get()).thenReturn(doc);
+        // Wir sagen dem Mock einfach, was er zurückgeben soll, wenn er gefragt wird
+        when(mockExtractor.extractHeadings(url)).thenReturn(List.of());
+        when(mockExtractor.extractLinks(url)).thenReturn(List.of("http://google.com"));
 
-            parser.crawl(url, List.of("meine-seite.at"), 1);
+        parser.crawl(url, List.of("meine-seite.at"), 1);
 
-            assertFalse(testOut.toString().contains("google.com"), "Ungültiger Link sollte ignoriert werden");
-        }
+        assertFalse(testOut.toString().contains("google.com"), "Ungültiger Link sollte ignoriert werden");
     }
-
-
 
     @Test
     void testCrawlSuccessWithMock() throws IOException {
         String url = "http://mock-test.at";
-        String html = "<html><body><h1>Titel</h1><a href='http://mock-test.at/page2'>Link</a></body></html>";
-        Document realDoc = Jsoup.parse(html, url);
 
-        try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
-            Connection mockConnection = mock(Connection.class);
+        // Simuliere die Rückgabe von Jsoup im sauberen String-Format: "tag:text"
+        when(mockExtractor.extractHeadings(url)).thenReturn(List.of("h1:Titel"));
+        when(mockExtractor.extractLinks(url)).thenReturn(List.of("http://mock-test.at/page2"));
 
-            mockedJsoup.when(() -> Jsoup.connect(anyString())).thenReturn(mockConnection);
-            when(mockConnection.get()).thenReturn(realDoc);
-
-            parser.crawl(url, List.of("mock-test.at"), 1);
-        }
+        parser.crawl(url, List.of("mock-test.at"), 1);
 
         String output = testOut.toString();
         assertAll("Crawl Validierung",
@@ -104,14 +92,10 @@ class HtmlParserTest {
         String url = "http://kaputt.at";
         List<String> domains = List.of("kaputt.at");
 
-        try (MockedStatic<Jsoup> mockedJsoup = mockStatic(Jsoup.class)) {
-            Connection mockConnection = mock(Connection.class);
+        // Wenn das Interface aufgerufen wird, lassen wir es eine IOException werfen
+        when(mockExtractor.extractHeadings(url)).thenThrow(new IOException("Simulierter Netzwerkfehler"));
 
-            mockedJsoup.when(() -> Jsoup.connect(url)).thenReturn(mockConnection);
-            when(mockConnection.get()).thenThrow(new IOException("Simulierter Netzwerkfehler"));
-
-            parser.crawl(url, domains, 1);
-        }
+        parser.crawl(url, domains, 1);
 
         String output = testOut.toString();
         assertTrue(output.contains("broken link"), "Der Crawler sollte eine IOException abfangen und broken link im Report protokollieren.");
