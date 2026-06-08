@@ -8,27 +8,28 @@ import java.util.List;
 public class WebCrawlerApp {
     public static void main(String[] args) {
         if (args.length < 3) {
-            System.out.println("Gebrauch: java CrawlDemo <URL> <Tiefe> <Domain> <Domain> ... <Domain>");
+            System.out.println("Gebrauch: java WebCrawlerApp <URL> <Tiefe> <Domain> <Domain> ... <Domain>");
             return;
         }
 
         String startUrl = args[0];
-        int maxDepth = Integer.parseInt(args[1]);
+        int maxDepth;
+        try {
+            maxDepth = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            System.err.println("Fehler: Das zweite Argument muss eine gültige Ganzzahl sein.");
+            return;
+        }
+
         List<String> domains = Arrays.asList(Arrays.copyOfRange(args, 2, args.length));
 
-        try (PrintStream fileOut = new PrintStream(new FileOutputStream("report.md"))) {
-
-
+        try {
             HtmlDataExtractor extractor = new JsoupDataExtractor();
-            HtmlParser parser = new HtmlParser(maxDepth, fileOut, extractor);
-
-            System.out.println("CRAWLER START");
-            fileOut.println("CRAWLER START");
+            HtmlParser parser = new HtmlParser(maxDepth, extractor);
             parser.crawl(startUrl, domains, 1);
-            fileOut.println("CRAWLER END");
-            System.out.println("CRAWLER END");
 
-            System.err.println("Bericht wurde in report.md gespeichert.");
+            ReportWriter writer = new ReportWriter();
+            writer.writeReport("report.md", parser.getAllReports());
 
         } catch (Exception e) {
             System.err.println("Fehler: " + e.getMessage());

@@ -1,21 +1,20 @@
 package org.example;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ArrayList;
 
 public class HtmlParser {
 
     private final int maxDepth;
-    private final PrintStream out;
     private final HtmlDataExtractor dataExtractor;
     private final HashSet<String> visitedURLs = new HashSet<>();
+    private final List<PageReport> allReports = new ArrayList<>();
 
     //dataExtractor im Konstruktor hinzugefügt
-    public HtmlParser(int maxDepth, PrintStream out, HtmlDataExtractor dataExtractor) {
+    public HtmlParser(int maxDepth, HtmlDataExtractor dataExtractor) {
         this.maxDepth = maxDepth;
-        this.out = out;
         this.dataExtractor = dataExtractor;
     }
 
@@ -25,86 +24,38 @@ public class HtmlParser {
         }
 
         visitedURLs.add(url);
-        addMetaDataToReport(url, depth);
+        PageReport report = new PageReport(url, depth);
+        allReports.add(report);
 
         try {
-
             List<String> headings = dataExtractor.extractHeadings(url);
-            addHeadingsToReport(headings, depth);
+            for (String heading : headings){
+                report.addHeading(heading);
+            }
 
             List<String> links = dataExtractor.extractLinks(url);
+            for (String link : links) {
+                if (LinkValidator.isValid(link, domains)) {
+                    report.addLink(link);
+                }
+            }
             handleLinks(links, domains, depth);
         } catch (IOException e) {
-            addBrokenLinkToReport(url, depth);
-            System.err.println("Debug: " + url + " -> " + e.getMessage());
+            report.setBroken(true);
         }
-    }
-
-
-    private void addHeadingsToReport(List<String> headings, int depth) {
-        String dashes = getIndentation(depth);
-
-        for (String heading : headings) {
-
-            String[] parts = heading.split(":", 2);
-            if (parts.length < 2) continue;
-
-            String tagOfHeading = parts[0];
-            String headingText = parts[1];
-
-            int levelOfHeading = Character.getNumericValue(tagOfHeading.charAt(1));
-            String headingPrefix = getHeadingPrefix(levelOfHeading);
-
-            out.println(headingPrefix + " " + dashes + headingText);
-        }
-    }
-
-    String getIndentation(int depth) {
-        String dashes = "";
-        if (depth > 1) {
-            for (int i = 0; i < (depth - 1) * 2; i++) {
-                dashes += "-";
-            }
-            dashes += ">";
-        }
-        return dashes;
-    }
-
-    String getHeadingPrefix(int amount) {
-        String prefix = "";
-        for (int i = 0; i < amount; i++) {
-            prefix += "#";
-        }
-        return prefix;
     }
 
     private void handleLinks(List<String> links, List<String> domains, int depth) {
         for (String extractedUrl : links) {
             if (LinkValidator.isValid(extractedUrl, domains)) {
-                addLinkToReport(extractedUrl, depth + 1);
                 crawl(extractedUrl, domains, depth + 1);
             }
         }
     }
 
-    private void addLinkToReport(String url, int nextDepth) {
-        String dashes = getIndentation(nextDepth);
-        out.println("<br>" + dashes + " link to <a> " + url + "</a>");
+    public List<PageReport> getAllReports() {
+        return allReports;
     }
-
-    void addBrokenLinkToReport(String url, int depth) {
-        String dashes = getIndentation(depth);
-        String prefix = dashes.isEmpty() ? "" : dashes + " ";
-        out.println("<br>" + prefix + "broken link <a>" + url + "</a>");
-    }
-
-    private void addMetaDataToReport(String url, int depth) {
-        if (depth == 1) {
-            out.println("input: <a>" + url + "</a>");
-        }
-        out.println("<br>depth: " + depth);
-    }
-
     public void markUrlAsVisited(String url){
         this.visitedURLs.add(url);
     }
