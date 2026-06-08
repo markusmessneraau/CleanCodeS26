@@ -18,7 +18,10 @@ public class CrawlDemo {
 
         try (PrintStream fileOut = new PrintStream(new FileOutputStream("report.md"))) {
 
-            HtmlParser parser = new HtmlParser(maxDepth, fileOut);
+
+            HtmlDataExtractor extractor = new JsoupDataExtractor();
+            HtmlParser parser = new HtmlParser(maxDepth, fileOut, extractor);
+
             System.out.println("CRAWLER START");
             fileOut.println("CRAWLER START");
             parser.crawl(startUrl, domains, 1);

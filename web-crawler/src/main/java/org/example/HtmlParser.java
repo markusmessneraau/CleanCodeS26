@@ -1,11 +1,5 @@
 package org.example;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashSet;
@@ -15,11 +9,14 @@ public class HtmlParser {
 
     private final int maxDepth;
     private final PrintStream out;
+    private final HtmlDataExtractor dataExtractor;
     HashSet<String> visitedURLs = new HashSet<>();
 
-    public HtmlParser(int maxDepth, PrintStream out) {
+    //dataExtractor im Konstruktor hinzugefügt
+    public HtmlParser(int maxDepth, PrintStream out, HtmlDataExtractor dataExtractor) {
         this.maxDepth = maxDepth;
         this.out = out;
+        this.dataExtractor = dataExtractor;
     }
 
     public void crawl(String url, List<String> domains, int depth) {
@@ -31,25 +28,34 @@ public class HtmlParser {
         addMetaDataToReport(url, depth);
 
         try {
-            Document website = Jsoup.connect(url).get();
-            addHeadingsToReport(website, depth);
-            handleLinks(website, domains, depth);
+
+            List<String> headings = dataExtractor.extractHeadings(url);
+            addHeadingsToReport(headings, depth);
+
+            List<String> links = dataExtractor.extractLinks(url);
+            handleLinks(links, domains, depth);
         } catch (IOException e) {
             addBrokenLinkToReport(url, depth);
             System.err.println("Debug: " + url + " -> " + e.getMessage());
         }
     }
 
-    private void addHeadingsToReport(Document website, int depth) {
-        Elements headings = website.select("h1, h2, h3, h4, h5, h6");
+
+    private void addHeadingsToReport(List<String> headings, int depth) {
         String dashes = getIndentation(depth);
 
-        for (Element heading : headings) {
-            String tagOfHeading = heading.tagName();
+        for (String heading : headings) {
+
+            String[] parts = heading.split(":", 2);
+            if (parts.length < 2) continue;
+
+            String tagOfHeading = parts[0];
+            String headingText = parts[1];
+
             int levelOfHeading = Character.getNumericValue(tagOfHeading.charAt(1));
             String hashtags = getHashtagPrefix(levelOfHeading);
 
-            out.println(hashtags + " " + dashes + heading.text());
+            out.println(hashtags + " " + dashes + headingText);
         }
     }
 
@@ -64,7 +70,6 @@ public class HtmlParser {
         return dashes;
     }
 
-
     String getHashtagPrefix(int amount) {
         String hashtags = "";
         for (int i = 0; i < amount; i++) {
@@ -73,10 +78,8 @@ public class HtmlParser {
         return hashtags;
     }
 
-    private void handleLinks(Document website, List<String> domains, int depth) {
-        Elements links = website.select("a[href]");
-        for (Element link : links) {
-            String extractedUrl = link.absUrl("href");
+    private void handleLinks(List<String> links, List<String> domains, int depth) {
+        for (String extractedUrl : links) {
             if (LinkValidator.isValid(extractedUrl, domains)) {
                 addLinkToReport(extractedUrl, depth + 1);
                 crawl(extractedUrl, domains, depth + 1);
