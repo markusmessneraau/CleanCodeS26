@@ -2,6 +2,8 @@ package org.example;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,37 +26,49 @@ class HtmlParserTest {
         parser = new HtmlParser(3, new PrintStream(testOut), mockExtractor);
     }
 
-    @Test
-    void testHashtagsForHeadingLevels() {
-        assertEquals("#", parser.getHashtagPrefix(1));
-        assertEquals("###", parser.getHashtagPrefix(3));
+    @ParameterizedTest
+    @CsvSource({
+            "1, '#'",
+            "2, '##'",
+            "3, '###'"
+    })
+    void testHeadingPrefixForHeadingLevels(int level, String expectedPrefix) {
+        assertEquals(expectedPrefix, parser.getHeadingPrefix(level));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "1, ''",
+            "2, '-->'",
+            "3, '---->'"
+    })
+    void testIndentationDashes(int depth, String expectedIndentation) {
+        assertEquals(expectedIndentation, parser.getIndentation(depth));
     }
 
     @Test
-    void testIndentationDashes() {
-        assertEquals("", parser.getIndentation(1));
-        assertEquals("-->", parser.getIndentation(2));
-    }
-
-    @Test
-    void testBrokenLinkOutputFormatting() {
-        testOut.reset();
+    void testBrokenLinkOutputFormattingAtRootDepth(){
         parser.addBrokenLinkToReport("http://error.com", 1);
-        assertTrue(testOut.toString().contains("<br>broken link"));
-
-        testOut.reset();
-        parser.addBrokenLinkToReport("http://error.com", 2);
-        assertTrue(testOut.toString().contains("<br>--> broken link"));
+        assertTrue(testOut.toString().contains("<br>broken link"),"Der kaputte Link auf Tiefe 1 wurde falsch formatiert.");
     }
 
     @Test
-    void testCrawlStopsCorrecty() {
+    void testBrokenLinkOutputFormattingAtLowerDepth() {
+        parser.addBrokenLinkToReport("http://error.com", 2);
+        assertTrue(testOut.toString().contains("<br>--> broken link"),"Der kaputte Link auf Tiefe 2 wurde nicht korrekt eingerückt!");
+    }
+
+    @Test
+    void testCrawlStopsWhenDepthExceeded(){
         parser.crawl("http://test.at", List.of("test.at"), 10); // 10 > 3 (maxDepth)
+        assertTrue(testOut.toString().isEmpty(), "Crawler hätte bei Tiefe > maxDepth sofort stoppen müssen");
+    }
 
-        parser.visitedURLs.add("http://schon-besucht.at");
+    @Test
+    void testCrawlStopsWhenUrlAlreadyVisited() {
+        parser.markUrlAsVisited("http://schon-besucht.at");
         parser.crawl("http://schon-besucht.at", List.of("test.at"), 1);
-
-        assertTrue(testOut.toString().contains("depth: 10") || testOut.toString().isEmpty());
+        assertTrue(testOut.toString().isEmpty(), "Crawler hätte bei bereits besuchter URL sofort stoppen müssen");
     }
 
     @Test
@@ -71,7 +85,7 @@ class HtmlParserTest {
     }
 
     @Test
-    void testCrawlSuccessWithMock() throws IOException {
+    void testCrawlFormatsHeadingsCorrectly() throws IOException {
         String url = "http://mock-test.at";
 
         // Simuliere die Rückgabe von Jsoup im sauberen String-Format: "tag:text"
@@ -81,10 +95,18 @@ class HtmlParserTest {
         parser.crawl(url, List.of("mock-test.at"), 1);
 
         String output = testOut.toString();
-        assertAll("Crawl Validierung",
-                () -> assertTrue(output.contains("# Titel"), "Die Überschrift wurde nicht korrekt formatiert gedruckt!"),
-                () -> assertTrue(parser.visitedURLs.contains(url), "Die Ausgangs-URL sollte im HashSet als besucht markiert sein.")
-        );
+        assertTrue(output.contains("# Titel"), "Die Überschrift wurde nicht korrekt formatiert gedruckt!");
+    }
+
+    @Test
+    void testCrawlMarksUrlAsVisited() throws IOException{
+        String url = "http://mock-test.at";
+
+        when(mockExtractor.extractHeadings(url)).thenReturn(List.of());
+        when(mockExtractor.extractLinks(url)).thenReturn(List.of());
+
+        parser.crawl(url, List.of("mock-test.at"), 1);
+        assertTrue(parser.isUrlVisited(url), "Die Ausgangs-URL sollte im HashSet als besucht markiert sein.");
     }
 
     @Test

@@ -5,7 +5,7 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 
-public class CrawlDemo {
+public class WebCrawlerApp {
     public static void main(String[] args) {
         if (args.length < 3) {
             System.out.println("Gebrauch: java CrawlDemo <URL> <Tiefe> <Domain> <Domain> ... <Domain>");

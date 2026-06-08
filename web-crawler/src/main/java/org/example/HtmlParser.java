@@ -10,7 +10,7 @@ public class HtmlParser {
     private final int maxDepth;
     private final PrintStream out;
     private final HtmlDataExtractor dataExtractor;
-    HashSet<String> visitedURLs = new HashSet<>();
+    private final HashSet<String> visitedURLs = new HashSet<>();
 
     //dataExtractor im Konstruktor hinzugefügt
     public HtmlParser(int maxDepth, PrintStream out, HtmlDataExtractor dataExtractor) {
@@ -53,9 +53,9 @@ public class HtmlParser {
             String headingText = parts[1];
 
             int levelOfHeading = Character.getNumericValue(tagOfHeading.charAt(1));
-            String hashtags = getHashtagPrefix(levelOfHeading);
+            String headingPrefix = getHeadingPrefix(levelOfHeading);
 
-            out.println(hashtags + " " + dashes + headingText);
+            out.println(headingPrefix + " " + dashes + headingText);
         }
     }
 
@@ -70,12 +70,12 @@ public class HtmlParser {
         return dashes;
     }
 
-    String getHashtagPrefix(int amount) {
-        String hashtags = "";
+    String getHeadingPrefix(int amount) {
+        String prefix = "";
         for (int i = 0; i < amount; i++) {
-            hashtags += "#";
+            prefix += "#";
         }
-        return hashtags;
+        return prefix;
     }
 
     private void handleLinks(List<String> links, List<String> domains, int depth) {
@@ -103,5 +103,13 @@ public class HtmlParser {
             out.println("input: <a>" + url + "</a>");
         }
         out.println("<br>depth: " + depth);
+    }
+
+    public void markUrlAsVisited(String url){
+        this.visitedURLs.add(url);
+    }
+
+    public boolean isUrlVisited(String url){
+        return this.visitedURLs.contains(url);
     }
 }
