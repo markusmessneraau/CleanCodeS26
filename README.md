@@ -54,9 +54,9 @@ Führen Sie den Crawler im Hauptverzeichnis des Projekts mit Maven aus. Der Para
 
 ### Lokaler Test-Server:
 ```bash
-mvn -f web-crawler/pom.xml exec:java -Dexec.mainClass="org.example.CrawlDemo" -Dexec.args="http://localhost:8000/index.html 3 localhost google.com"
+mvn -f web-crawler/pom.xml exec:java -Dexec.mainClass="org.example.WebCrawlerApp" -Dexec.args="http://localhost:8000/index.html 3 localhost google.com"
 ```
 
 ### Internet-Seite:
 ```bash
-mvn -f web-crawler/pom.xml exec:java -Dexec.mainClass="org.example.CrawlDemo" -Dexec.args="http://quotes.toscrape.com/ 3 quotes.toscrape.com"
+mvn -f web-crawler/pom.xml exec:java -Dexec.mainClass="org.example.WebCrawlerApp" -Dexec.args="http://quotes.toscrape.com/ 3 quotes.toscrape.com"
