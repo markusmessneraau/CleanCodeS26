@@ -3,8 +3,6 @@ package org.example;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -12,7 +10,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ReportWriterTest {
-
     private ReportWriter writer;
     private Path tempFile;
 
