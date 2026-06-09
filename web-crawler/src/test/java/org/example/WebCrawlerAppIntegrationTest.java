@@ -18,7 +18,7 @@ class WebCrawlerAppIntegrationTest {
 
     private HttpServer server;
     private final Path reportPath = Path.of("report.md");
-    private final Path htmlSamplesDir = Path.of("html-samples"); // Zeigt direkt auf deinen Ordner!
+    private final Path htmlSamplesDir = Path.of("html-samples");
 
     @BeforeEach
     void setUp() throws IOException {
@@ -45,7 +45,7 @@ class WebCrawlerAppIntegrationTest {
                     os.write(response);
                 }
             } else {
-                // Simuliert genau den 404-Fehler für "gibts-nicht.html"
+
                 exchange.sendResponseHeaders(404, 0);
                 exchange.close();
             }
