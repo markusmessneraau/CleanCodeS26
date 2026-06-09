@@ -1,15 +1,16 @@
 Hinweis zur KI-Nutzung: Gemini wurde genutzt, um verschiedene Implementierungsstrategien und Testfälle zu diskutieren. Die finale Implementierung wurde eigenständig von den Studierenden durchgeführt.
 # CleanCodeS26 - Web Crawler
 
-Ein Tool zum rekursiven Durchsuchen von Webseiten und zur Erstellung von strukturierten Markdown-Berichten.
+Ein Tool zum rekursiven Durchsuchen von Webseiten und zur Erstellung von structured Markdown-Berichten.
 
 ## Funktionsweise
 Das Programm verarbeitet Webseiten nach folgendem Prinzip:
 
-* **Rekursion:** Ausgehend von einer Start-URL werden gefundene Links bis zu einer festgelegten Tiefe verfolgt.
+* **Breitensuche (Ebene für Ebene):** Ausgehend von einer Start-URL wird die Struktur Ebene für Ebene (Breadth-First-Search) abgearbeitet. Erst wenn eine Ebene komplett abgeschlossen ist, geht der Crawler zur nächsten über.
+* **Multithreading (Parallele Verarbeitung):** Jede Crawl-Ebene wird von einem festen Pool aus **8 parallelen Threads** verarbeitet. Jede URL einer Ebene wird als eigenständige Aufgabe an einen Worker-Thread (`HtmlParser`) übergeben.
 * **Filterung:** Ein Domain-Filter stellt sicher, dass nur Links innerhalb der erlaubten Domains (Whitelist) besucht werden.
 * **Extraktion:** Das Tool extrahiert HTML-Überschriften (H1-H6) und wandelt diese in Markdown-Syntax um.
-* **Fehlerbehandlung:** Nicht erreichbare Seiten werden als `broken link` markiert, ohne den Prozess abzubrechen.
+* **Fehlerbehandlung:** Nicht erreichbare Seiten werden abgefangen und im Log dokumentiert, ohne dass Threads abstürzen oder der gesamte Prozess abbricht.
 
 ## Voraussetzungen
 * Java 21
@@ -45,18 +46,17 @@ Das Programm erwartet die Parameter in einer festen Reihenfolge:
 
 
 3. **Whitelist (Variable Liste)** Alle weiteren Wörter nach der Tiefe werden als erlaubte Domains gewertet.
-    * **Funktion:** Nur Links mit diesen Domains im Hostnamen werden gecrawlt.
-    * **Format:** Beliebig viele Domains, getrennt durch Leerzeichen.
-    * **Beispiel:** `localhost google.com aau.at`
-
-## Programm ausführen
-Führen Sie den Crawler im Hauptverzeichnis des Projekts mit Maven aus. Der Parameter `-f` gibt den Pfad zur Projektdatei an:
+   * **Funktion:** Nur Links mit diesen Domains im Hostnamen werden gecrawlt.
+   * **Format:** Beliebig viele Domains, getrennt durch Leerzeichen.
+   * **Beispiel:** `localhost google.com aau.at`
 
 ### Lokaler Test-Server:
+
 ```bash
 mvn -f web-crawler/pom.xml exec:java -Dexec.mainClass="org.example.WebCrawlerApp" -Dexec.args="http://localhost:8000/index.html 3 localhost google.com"
-```
 
+```
 ### Internet-Seite:
+
 ```bash
 mvn -f web-crawler/pom.xml exec:java -Dexec.mainClass="org.example.WebCrawlerApp" -Dexec.args="http://quotes.toscrape.com/ 3 quotes.toscrape.com"
