@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PageReportTest {
 
     @Test
-    void testShouldInitializeWithDefaultValues() {
+    void shouldInitializeWithDefaultValues() {
         PageReport report = new PageReport("http://test.at", 2);
 
         assertAll("Initialer Zustand des PageReport",
@@ -20,7 +20,7 @@ public class PageReportTest {
     }
 
     @Test
-    void testAddHeadingStoresHeadingCorrectly() {
+    void addHeadingStoresHeadingCorrectly() {
         PageReport report = new PageReport("http://test.at", 1);
         report.addHeading("h1:Titel");
 
@@ -29,7 +29,7 @@ public class PageReportTest {
     }
 
     @Test
-    void testAddLinkStoresLinkCorrectly() {
+    void addLinkStoresLinkCorrectly() {
         PageReport report = new PageReport("http://test.at", 1);
         report.addLink("http://next-page.com");
 
@@ -38,11 +38,10 @@ public class PageReportTest {
     }
 
     @Test
-    void testSetBrokenUpdatesStatus() {
+    void setBrokenUpdatesStatus() {
         PageReport report = new PageReport("http://test.at", 1);
         report.setBroken(true);
 
         assertTrue(report.isBroken());
     }
-
 }

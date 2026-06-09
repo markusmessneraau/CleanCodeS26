@@ -37,7 +37,7 @@ public class ReportWriter {
                 fileOut.println();
             }
             System.err.println("Bericht wurde in " + outputFilename + " gespeichert.");
-        } catch (FileNotFoundException e){
+        } catch (FileNotFoundException e) {
             System.err.println("Fehler: Datei konnte nicht erstellt werden: " + e.getMessage());
         }
 

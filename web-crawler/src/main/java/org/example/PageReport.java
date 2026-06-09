@@ -10,6 +10,7 @@ public class PageReport {
     private boolean isBroken = false;
 
     private final List<String> links = new ArrayList<>();
+
     public PageReport(String url, int depth) {
         this.url = url;
         this.depth = depth;

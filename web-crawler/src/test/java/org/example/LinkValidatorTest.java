@@ -31,14 +31,14 @@ public class LinkValidatorTest {
     }
 
     @Test
-    void shouldReturnFalseIfUrlIsEmpty(){
+    void shouldReturnFalseIfUrlIsEmpty() {
         String url = "";
         boolean result = LinkValidator.isValid(url, List.of("aau.at"));
         assertFalse(result);
     }
 
     @Test
-    void shouldReturnFalseIfProtocolIsInvalid(){
+    void shouldReturnFalseIfProtocolIsInvalid() {
         assertFalse(LinkValidator.isValid("mailto:info@aau.at", List.of("aau.at")));
     }
 
@@ -61,7 +61,5 @@ public class LinkValidatorTest {
     void shouldHitCatchBlock() {
         assertFalse(LinkValidator.isValid("http://[", List.of("aau.at")));
     }
-
-
 
 }

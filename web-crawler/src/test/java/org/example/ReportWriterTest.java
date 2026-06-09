@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.File;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -23,7 +23,7 @@ public class ReportWriterTest {
     }
 
     @Test
-    void testWriteReportCreatesFileAndWritesContent(@TempDir Path tempDir) throws Exception {
+    void shouldCreateFileAndWriteContent() throws Exception {
         PageReport sampleReport = new PageReport("http://test-seite.at", 1);
         sampleReport.addHeading("h1:Willkommen");
         sampleReport.addLink("http://folgelink.at");
@@ -38,14 +38,14 @@ public class ReportWriterTest {
     }
 
     @Test
-    void testWriteReportWithEmptyListDoesNotCreateFile(@TempDir Path tempDir) {
+    void shouldNotCreateFileIfReportListIsEmpty() {
         writer.writeReport(tempFile.toString(), List.of());
 
-        assertFalse(tempFile.toFile().exists(), "Bei einer leeren Liste sollte keine Datei erstellt werden.");
+        assertFalse(Files.exists(tempFile), "Bei einer leeren Liste sollte keine Datei erstellt werden.");
     }
 
     @Test
-    void testWriteReportWithBrokenLinkWritesBrokenLinkMessage(@TempDir Path tempDir) throws Exception {
+    void shouldWriteBrokenLinkMessageIfLinkIsBroken() throws Exception {
         PageReport brokenReport = new PageReport("http://broken-link.at", 1);
         brokenReport.setBroken(true);
 
