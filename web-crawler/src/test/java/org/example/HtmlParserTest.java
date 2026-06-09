@@ -4,91 +4,59 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class HtmlParserTest {
-    private HtmlParser parser;
-    private HtmlDataExtractor mockExtractor; // Unser neuer Mock für das Interface
+
+    private HtmlDataExtractor mockExtractor;
+    private List<PageReport> testReports;
+    private List<String> allowedDomains;
 
     @BeforeEach
     void setUp() {
-        mockExtractor = mock(HtmlDataExtractor.class); // Interface mocken statt Jsoup!
-        // Dem Parser übergeben wir jetzt den Mock
-        parser = new HtmlParser(3, mockExtractor);
-    }
 
-    @Test
-    void testCrawlStopsWhenDepthExceeded(){
-        parser.crawl("http://test.at", List.of("test.at"), 10); // 10 > 3 (maxDepth)
-        assertTrue(parser.getAllReports().isEmpty(), "Crawler hätte bei Tiefe > maxDepth sofort stoppen müssen");
-    }
+        mockExtractor = mock(HtmlDataExtractor.class);
+        testReports = Collections.synchronizedList(new ArrayList<>());
 
-    @Test
-    void testCrawlStopsWhenUrlAlreadyVisited() {
-        parser.markUrlAsVisited("http://schon-besucht.at");
-        parser.crawl("http://schon-besucht.at", List.of("test.at"), 1);
-        assertTrue(parser.getAllReports().isEmpty(), "Crawler hätte bei bereits besuchter URL sofort stoppen müssen");
-    }
-
-    @Test
-    void testHandleLinksSkipsInvalid() throws IOException {
-        String url = "http://meine-seite.at";
-
-        // Wir sagen dem Mock einfach, was er zurückgeben soll, wenn er gefragt wird
-        when(mockExtractor.extractHeadings(url)).thenReturn(List.of());
-        when(mockExtractor.extractLinks(url)).thenReturn(List.of("http://google.com"));
-
-        parser.crawl(url, List.of("meine-seite.at"), 1);
-
-        PageReport report = parser.getAllReports().getFirst();
-
-        assertFalse(report.getLinks().contains("google.com"), "Ungültiger Link sollte ignoriert werden");
+        allowedDomains = List.of("mock-test.at", "meine-seite.at");
     }
 
     @Test
     void testCrawlSavesHeadingsCorrectly() throws IOException {
         String url = "http://mock-test.at";
 
-        // Simuliert die Rückgabe des Extractors
         when(mockExtractor.extractHeadings(url)).thenReturn(List.of("h1:Titel"));
         when(mockExtractor.extractLinks(url)).thenReturn(List.of());
 
-        parser.crawl(url, List.of("mock-test.at"), 1);
+        HtmlParser parser = new HtmlParser(url, 1, allowedDomains, mockExtractor, testReports);
 
-        List<PageReport> reports = parser.getAllReports();
-        assertEquals(1, reports.size());
-        assertTrue(reports.getFirst().getHeadings().contains("h1:Titel"), "Die Überschrift wurde nicht im Report gespeichert.");
+        parser.run();
+
+        assertEquals(1, testReports.size());
+        PageReport report = testReports.getFirst();
+        assertEquals(url, report.getUrl());
+        assertEquals(1, report.getDepth());
+        assertTrue(report.getHeadings().contains("h1:Titel"), "Die Überschrift wurde nicht im Report gespeichert.");
     }
 
-
     @Test
-    void testCrawlMarksUrlAsVisited() throws IOException{
-        String url = "http://mock-test.at";
+    void testHandleLinksSkipsInvalid() throws IOException {
+        String url = "http://meine-seite.at";
 
         when(mockExtractor.extractHeadings(url)).thenReturn(List.of());
-        when(mockExtractor.extractLinks(url)).thenReturn(List.of());
+        when(mockExtractor.extractLinks(url)).thenReturn(List.of("http://google.com"));
 
-        parser.crawl(url, List.of("mock-test.at"), 1);
-        assertTrue(parser.isUrlVisited(url), "Die Ausgangs-URL sollte im HashSet als besucht markiert sein.");
-    }
+        HtmlParser parser = new HtmlParser(url, 1, allowedDomains, mockExtractor, testReports);
+        parser.run();
 
-
-    @Test
-    void testCrawlThrowsExceptionMarksAsBroken() throws IOException {
-        String url = "http://kaputt.at";
-        List<String> domains = List.of("kaputt.at");
-
-        // Wenn das Interface aufgerufen wird, lassen wir es eine IOException werfen
-        when(mockExtractor.extractHeadings(url)).thenThrow(new IOException("Simulierter Netzwerkfehler"));
-
-        parser.crawl(url, domains, 1);
-
-        List<PageReport> reports = parser.getAllReports();
-        assertEquals(1, reports.size());
-        assertTrue(reports.getFirst().isBroken(), "Der Crawler sollte als broken markiert werden.");
+        assertEquals(1, testReports.size());
+        PageReport report = testReports.getFirst();
+        assertFalse(report.getLinks().contains("http://google.com"), "Ungültiger Link sollte ignoriert werden");
     }
 
     @Test
@@ -99,12 +67,28 @@ class HtmlParserTest {
         when(mockExtractor.extractHeadings(url)).thenReturn(List.of());
         when(mockExtractor.extractLinks(url)).thenReturn(List.of(folgeUrl));
 
-        when(mockExtractor.extractHeadings(folgeUrl)).thenReturn(List.of());
-        when(mockExtractor.extractLinks(folgeUrl)).thenReturn(List.of());
+        HtmlParser parser = new HtmlParser(url, 1, allowedDomains, mockExtractor, testReports);
+        parser.run();
 
-        parser.crawl(url, List.of("mock-test.at"), 1);
-
-        PageReport report = parser.getAllReports().getFirst();
+        assertEquals(1, testReports.size());
+        PageReport report = testReports.getFirst();
         assertTrue(report.getLinks().contains(folgeUrl), "Der gültige Link hätte im Report gespeichert werden müssen.");
+    }
+
+    @Test
+    void testCrawlThrowsExceptionMarksAsBroken() throws IOException {
+        String url = "http://kaputt.at";
+
+
+        when(mockExtractor.extractHeadings(url)).thenThrow(new IOException("Simulierter Netzwerkfehler"));
+
+        HtmlParser parser = new HtmlParser(url, 1, List.of("kaputt.at"), mockExtractor, testReports);
+        parser.run();
+
+
+        assertEquals(1, testReports.size());
+        PageReport report = testReports.getFirst();
+
+        assertTrue(report.isBroken(), "Der Report sollte als broken markiert werden.");
     }
 }

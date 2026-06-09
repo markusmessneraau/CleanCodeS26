@@ -1,35 +1,42 @@
 package org.example;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
 
-public class HtmlParser {
+public class HtmlParser implements Runnable {
 
-    private final int maxDepth;
+
+    private static final Logger logger = LoggerFactory.getLogger(HtmlParser.class);
+
+    private final String url;
+    private final int depth;
+    private final List<String> domains;
     private final HtmlDataExtractor dataExtractor;
-    private final HashSet<String> visitedURLs = new HashSet<>();
-    private final List<PageReport> allReports = new ArrayList<>();
+    private final List<PageReport> allReports;
 
-    //dataExtractor im Konstruktor hinzugefügt
-    public HtmlParser(int maxDepth, HtmlDataExtractor dataExtractor) {
-        this.maxDepth = maxDepth;
+    public HtmlParser(String url, int depth, List<String> domains, HtmlDataExtractor dataExtractor, List<PageReport> allReports) {
+        this.url = url;
+        this.depth = depth;
+        this.domains = domains;
         this.dataExtractor = dataExtractor;
+        this.allReports = allReports;
     }
 
-    public void crawl(String url, List<String> domains, int depth) {
-        if (depth > maxDepth || visitedURLs.contains(url)) {
-            return;
-        }
+    @Override
+    public void run() {
 
-        visitedURLs.add(url);
+        logger.info("startet Crawl für: {}", url);
+        crawl();
+    }
+
+    public void crawl() {
         PageReport report = new PageReport(url, depth);
-        allReports.add(report);
 
         try {
             List<String> headings = dataExtractor.extractHeadings(url);
-            for (String heading : headings){
+            for (String heading : headings) {
                 report.addHeading(heading);
             }
 
@@ -39,28 +46,14 @@ public class HtmlParser {
                     report.addLink(link);
                 }
             }
-            handleLinks(links, domains, depth);
-        } catch (IOException e) {
-            report.setBroken(true);
-        }
-    }
 
-    private void handleLinks(List<String> links, List<String> domains, int depth) {
-        for (String extractedUrl : links) {
-            if (LinkValidator.isValid(extractedUrl, domains)) {
-                crawl(extractedUrl, domains, depth + 1);
+        } catch (IOException e) {
+            logger.error("Fehler bei {}: {}", url, e.getMessage());
+            report.setBroken(true);
+        } finally {
+            synchronized (allReports) {
+                allReports.add(report);
             }
         }
-    }
-
-    public List<PageReport> getAllReports() {
-        return allReports;
-    }
-    public void markUrlAsVisited(String url){
-        this.visitedURLs.add(url);
-    }
-
-    public boolean isUrlVisited(String url){
-        return this.visitedURLs.contains(url);
     }
 }
